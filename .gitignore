@@ -1,3 +1,4 @@
 ray-tracing
 *.txt
 
+**/bin/

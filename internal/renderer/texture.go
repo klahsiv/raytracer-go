@@ -21,13 +21,13 @@ func CreateRenderTexture(width, height int) *RenderTexture {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, int32(width), int32(height), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, int32(width), int32(height), 0, gl.RGBA, gl.FLOAT, nil)
 
 	rlTexture := rl.Texture2D{
 		ID:     textureID,
 		Width:  int32(width),
 		Height: int32(height),
-		Format: rl.UncompressedR8g8b8a8,
+		Format: rl.UncompressedR32g32b32a32,
 	}
 
 	renderTexture := RenderTexture{
@@ -41,7 +41,7 @@ func CreateRenderTexture(width, height int) *RenderTexture {
 }
 
 func (renderTexture *RenderTexture) Bind(binding uint32) {
-	gl.BindImageTexture(binding, renderTexture.ID, 0, false, 0, gl.WRITE_ONLY, gl.RGBA8)
+	gl.BindImageTexture(binding, renderTexture.ID, 0, false, 0, gl.WRITE_ONLY, gl.RGBA32F)
 }
 
 func (renderTexture *RenderTexture) Draw() {

@@ -1,0 +1,11 @@
+package scene
+
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+type Material struct {
+	Color            rl.Vector3
+	EmissionColor    rl.Vector3
+	EmissionStrength rl.Vector3
+}

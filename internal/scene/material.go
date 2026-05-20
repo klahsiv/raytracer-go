@@ -5,7 +5,7 @@ import (
 )
 
 type Material struct {
-	Color            rl.Vector3
+	Colour           rl.Vector3
 	EmissionColor    rl.Vector3
 	EmissionStrength float32
 }

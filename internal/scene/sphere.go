@@ -5,7 +5,7 @@ import (
 )
 
 type Sphere struct {
-	center      rl.Vector3
-	radius      float32
-	materialIdx int
+	Center      rl.Vector3
+	Radius      float32
+	MaterialIdx int
 }

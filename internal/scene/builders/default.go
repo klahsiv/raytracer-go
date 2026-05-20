@@ -1,21 +1,21 @@
 package builders
 
 import (
-	"ray-tracing/internal/scene"
+	"ray-tracing/internal/scene/cpu"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func DefaultScene() *scene.Scene {
+func DefaultScene() *cpu.Scene {
 
-	spheres := []scene.Sphere{
+	spheres := []cpu.Sphere{
 		{Center: rl.NewVector3(0.0, 0.0, -1.0), Radius: 8.0, MaterialIdx: 0},
 		{Center: rl.NewVector3(20.0, 0.0, -1.0), Radius: 10.0, MaterialIdx: 1},
 		{Center: rl.NewVector3(-20.0, 0.0, -1.0), Radius: 6.0, MaterialIdx: 2},
 		{Center: rl.NewVector3(0.0, 0.0, -500.0), Radius: 450.0, MaterialIdx: 3},
 		{Center: rl.NewVector3(0.0, -510.0, 0.0), Radius: 500.0, MaterialIdx: 4},
 	}
-	materials := []scene.Material{
+	materials := []cpu.Material{
 		{Colour: rl.NewVector3(1.0, 0.0, 0.0), EmissionColor: rl.NewVector3(0.0, 0.0, 0.0), EmissionStrength: 0.0},
 		{Colour: rl.NewVector3(0.0, 1.0, 0.0), EmissionColor: rl.NewVector3(0.0, 0.0, 0.0), EmissionStrength: 0.0},
 		{Colour: rl.NewVector3(0.0, 0.0, 1.0), EmissionColor: rl.NewVector3(0.0, 0.0, 0.0), EmissionStrength: 0.0},
@@ -23,7 +23,7 @@ func DefaultScene() *scene.Scene {
 		{Colour: rl.NewVector3(0.5, 1.0, 1.0), EmissionColor: rl.NewVector3(0.0, 0.0, 0.0), EmissionStrength: 0.0},
 	}
 
-	defaultScene := scene.Scene{Spheres: spheres, Materials: materials}
+	defaultScene := cpu.Scene{Spheres: spheres, Materials: materials}
 	/*
 		triangles := []Triangle{
 			{

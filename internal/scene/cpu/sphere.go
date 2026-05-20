@@ -1,4 +1,4 @@
-package scene
+package cpu
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"

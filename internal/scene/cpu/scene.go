@@ -1,4 +1,4 @@
-package scene
+package cpu
 
 type Scene struct {
 	Spheres   []Sphere

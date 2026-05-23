@@ -18,7 +18,6 @@ func NewRenderer(width, height int) *Renderer {
 
 	texture := CreateRenderTexture(width, height)
 	shader := LoadComputeShader("shaders/raytracing.cs")
-	//shader := LoadComputeShader("shaders/test.cs")
 
 	renderer := Renderer{texture: *texture, shader: *shader, renderFrame: 0}
 

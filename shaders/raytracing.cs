@@ -212,21 +212,17 @@ void main(){
     if (pixel.x >= size.x || pixel.y >= size.y)
         return;
 
-    //vec2 uv = vec2(pixel) / vec2(size);
     vec2 uv = ((vec2(pixel) + 0.5) / vec2(size)) * 2.0 - 1.0;
     int rngState = int(pixel.x * int(1973) + pixel.y * int(9277) + iFrame * int(26699)) | int(1);
-
-    //uv.y *= -1.0;
 
     vec4 rayClip = vec4(uv, -1.0, 1.0);
 
     // clip → view
     vec4 rayView = invProjMat * rayClip;
-    //rayView /= rayView.w;
+    rayView /= rayView.w;
 
     // view → world (direction)
     vec3 rayDir = normalize((invViewMat* vec4(rayView.xyz, 0.0)).xyz);
-    //vec3 rayDir = normalize((transpose(invViewMat) * vec4(rayView.xyz, 0.0)).xyz);
 
     Ray ray;
     ray.origin = camPos;
@@ -243,21 +239,9 @@ void main(){
     /*
     int idx = int(gl_FragCoord.x) + int(gl_FragCoord.y * resolution.x);
     accumulation[idx].xyz += pixelColor;
-*/
-    //vec3 texel = accumulation[idx].xyz / iFrame;
+    vec3 texel = accumulation[idx].xyz / iFrame;
+    */
 
-    //vec3 colour = vec3(uv, 0.0);
-    //vec3 colour = materials[3].emission.xyz;
-    //imageStore(renderImage, pixel, vec4(colour, 1.0));
     imageStore(renderImage, pixel, vec4(pixelColour, 1.0));
 
-    /*
-    HitInfo hit = CalculateRayCollison(ray);
-
-    if(hit.didHit > 0)
-        imageStore(renderImage, pixel, vec4(hit.material.colour.xyz, 1.0));
-    else
-        imageStore(renderImage, pixel, vec4(0.0, 0.0, 0.0, 1.0));
-        */
-    //imageStore(renderImage, pixel, vec4(camPos.xyz, 1.0));
 }

@@ -216,7 +216,7 @@ void main(){
     vec2 uv = ((vec2(pixel) + 0.5) / vec2(size)) * 2.0 - 1.0;
     int rngState = int(pixel.x * int(1973) + pixel.y * int(9277) + iFrame * int(26699)) | int(1);
 
-    uv.y *= -1.0;
+    //uv.y *= -1.0;
 
     vec4 rayClip = vec4(uv, -1.0, 1.0);
 
@@ -232,14 +232,13 @@ void main(){
     ray.origin = camPos;
     ray.dir = rayDir;
 
-    /*vec3 totalIncomingLight = vec3(0);
+    vec3 totalIncomingLight = vec3(0);
 
     for(int rayIndex = 0; rayIndex < NUM_RAYS_PER_PIXEL; rayIndex++){
       totalIncomingLight += TraceRay(ray, rngState);
     }
 
     vec3 pixelColour = totalIncomingLight / NUM_RAYS_PER_PIXEL;
-*/
 
     /*
     int idx = int(gl_FragCoord.x) + int(gl_FragCoord.y * resolution.x);
@@ -250,13 +249,15 @@ void main(){
     //vec3 colour = vec3(uv, 0.0);
     //vec3 colour = materials[3].emission.xyz;
     //imageStore(renderImage, pixel, vec4(colour, 1.0));
-    //imageStore(renderImage, pixel, vec4(pixelColour, 1.0));
+    imageStore(renderImage, pixel, vec4(pixelColour, 1.0));
 
+    /*
     HitInfo hit = CalculateRayCollison(ray);
 
     if(hit.didHit > 0)
         imageStore(renderImage, pixel, vec4(hit.material.colour.xyz, 1.0));
     else
         imageStore(renderImage, pixel, vec4(0.0, 0.0, 0.0, 1.0));
-    imageStore(renderImage, pixel, vec4(rayDir.xyz, 1.0));
+        */
+    //imageStore(renderImage, pixel, vec4(camPos.xyz, 1.0));
 }

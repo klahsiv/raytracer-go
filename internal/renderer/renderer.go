@@ -17,8 +17,8 @@ type Renderer struct {
 func NewRenderer(width, height int) *Renderer {
 
 	texture := CreateRenderTexture(width, height)
-	//shader := LoadComputeShader("shaders/raytracing.cs")
-	shader := LoadComputeShader("shaders/test2.cs")
+	shader := LoadComputeShader("shaders/raytracing.cs")
+	//shader := LoadComputeShader("shaders/test.cs")
 
 	renderer := Renderer{texture: *texture, shader: *shader, renderFrame: 0}
 
@@ -53,6 +53,8 @@ func (renderer *Renderer) Draw() {
 }
 
 func (renderer *Renderer) UploadScene(scene *gpu.Scene) {
+
+	gl.UseProgram(renderer.shader.programID)
 
 	if len(scene.Spheres) > 0 {
 		sphereSsbo := rl.LoadShaderBuffer(uint32(len(scene.Spheres)*int(unsafe.Sizeof(scene.Spheres[0]))),

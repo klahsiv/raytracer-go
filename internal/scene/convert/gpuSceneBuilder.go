@@ -14,7 +14,7 @@ func BuildGpuScene(scene *cpu.Scene) *gpu.Scene {
 	for _, sphere := range scene.Spheres {
 		gpuScene.Spheres = append(gpuScene.Spheres, gpu.Sphere{
 			CenterRadius: rl.NewVector4(sphere.Center.X, sphere.Center.Y, sphere.Center.Z, sphere.Radius),
-			MaterialId:   rl.NewVector4(float32(sphere.MaterialIdx), 0, 0, 0)})
+			MaterialId:   rl.NewVector4(float32(sphere.MaterialIdx), 0.0, 0.0, 0.0)})
 	}
 
 	for _, material := range scene.Materials {

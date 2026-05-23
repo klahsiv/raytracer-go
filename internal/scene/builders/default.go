@@ -30,8 +30,8 @@ func DefaultScene() *cpu.Scene {
 	camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
 	camera.Up = rl.NewVector3(0.0, 1.0, 0.0)
 	camera.Projection = rl.CameraPerspective
-	camera.Position = rl.NewVector3(0.0, 0.0, 15.0)
-	camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
+	//camera.Position = rl.NewVector3(0.0, 0.0, 15.0)
+	//camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
 
 	cam := renderer.Camera{Camera: camera}
 	defaultScene := cpu.Scene{Spheres: spheres, Materials: materials, Camera: cam}

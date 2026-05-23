@@ -26,7 +26,7 @@ func (camera *Camera) GetInverseCameraViewMatrix() rl.Matrix {
 	return invCamViewMatrix
 }
 
-func (camera *Camera) GetInverseCameraPorjectionMatrix() rl.Matrix {
+func (camera *Camera) GetInverseCameraProjectionMatrix() rl.Matrix {
 
 	proj := rl.GetCameraProjectionMatrix(&camera.Camera, float32(rl.GetScreenWidth())/float32(rl.GetScreenHeight()))
 	invCamProjectionMatrix := rl.MatrixInvert(proj)

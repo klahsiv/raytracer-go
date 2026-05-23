@@ -1,6 +1,7 @@
 package builders
 
 import (
+	"ray-tracing/internal/renderer"
 	"ray-tracing/internal/scene/cpu"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -23,7 +24,17 @@ func DefaultScene() *cpu.Scene {
 		{Colour: rl.NewVector3(0.5, 1.0, 1.0), EmissionColor: rl.NewVector3(0.0, 0.0, 0.0), EmissionStrength: 0.0},
 	}
 
-	defaultScene := cpu.Scene{Spheres: spheres, Materials: materials}
+	camera := rl.Camera{}
+	camera.Fovy = 45
+	camera.Position = rl.NewVector3(-7.08, 35.97, 22.82)
+	camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
+	camera.Up = rl.NewVector3(0.0, 1.0, 0.0)
+	camera.Projection = rl.CameraPerspective
+	camera.Position = rl.NewVector3(0.0, 0.0, 15.0)
+	camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
+
+	cam := renderer.Camera{Camera: camera}
+	defaultScene := cpu.Scene{Spheres: spheres, Materials: materials, Camera: cam}
 	/*
 		triangles := []Triangle{
 			{

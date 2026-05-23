@@ -69,5 +69,9 @@ func LoadComputeShader(path string) *ComputeShader {
 	computeShader := ComputeShader{programID: program}
 
 	return &computeShader
+}
 
+func (shader *ComputeShader) GetUniformLocation(name string) int32 {
+	loc := gl.GetUniformLocation(shader.programID, gl.Str(name+"\x00"))
+	return loc
 }

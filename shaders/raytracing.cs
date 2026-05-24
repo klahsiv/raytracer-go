@@ -8,6 +8,7 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 
 layout(rgba32f, binding = 0) uniform image2D renderImage;
+layout(rgba32f, binding = 1) uniform image2D accumulation;
 
 uniform mat4 invViewMat;
 uniform mat4 invProjMat;
@@ -36,17 +37,14 @@ struct RayTracingMaterial{
   // XYZ -> Colour, W -> Strength
   vec4 emission;
 };
-layout(std430, binding = 1) buffer Spheres {
+layout(std430, binding = 2) buffer Spheres {
   Sphere spheres[];
 };
-layout(std430, binding = 2) buffer Materials{
+layout(std430, binding = 3) buffer Materials{
   RayTracingMaterial materials[];
 };
-layout(std430, binding = 3) buffer Triangles{
+layout(std430, binding = 4) buffer Triangles{
   Triangle triangles[];
-};
-layout(std430, binding = 4) buffer Accumulation{
-  vec4 accumulation[];
 };
 
 
@@ -236,12 +234,18 @@ void main(){
 
     vec3 pixelColour = totalIncomingLight / NUM_RAYS_PER_PIXEL;
 
+    vec3 previousColour = imageLoad(accumulation, pixel).rgb;
+    previousColour += pixelColour;
+
+    imageStore(accumulation, pixel, vec4(previousColour, 1.0));
+
+    vec3 accumulatedColour = previousColour / iFrame;
     /*
     int idx = int(gl_FragCoord.x) + int(gl_FragCoord.y * resolution.x);
     accumulation[idx].xyz += pixelColor;
     vec3 texel = accumulation[idx].xyz / iFrame;
     */
 
-    imageStore(renderImage, pixel, vec4(pixelColour, 1.0));
+    imageStore(renderImage, pixel, vec4(accumulatedColour, 1.0));
 
 }

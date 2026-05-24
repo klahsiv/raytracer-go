@@ -9,17 +9,19 @@ import (
 )
 
 type Renderer struct {
-	texture     RenderTexture
-	shader      ComputeShader
-	renderFrame int32
+	texture             RenderTexture
+	shader              ComputeShader
+	renderFrame         int32
+	accumulationTexture RenderTexture
 }
 
 func NewRenderer(width, height int) *Renderer {
 
 	texture := CreateRenderTexture(width, height)
+	accumulationTexture := CreateRenderTexture(width, height)
 	shader := LoadComputeShader("shaders/raytracing.cs")
 
-	renderer := Renderer{texture: *texture, shader: *shader, renderFrame: 0}
+	renderer := Renderer{texture: *texture, shader: *shader, renderFrame: 0, accumulationTexture: *accumulationTexture}
 
 	return &renderer
 }
@@ -43,6 +45,7 @@ func (renderer *Renderer) Render(camera *Camera) {
 	gl.Uniform3f(camPosLoc, camera.Camera.Position.X, camera.Camera.Position.Y, camera.Camera.Position.Z)
 
 	renderer.texture.Bind(0)
+	renderer.accumulationTexture.Bind(1)
 	gl.DispatchCompute(uint32((renderer.texture.Width+7)/8), uint32((renderer.texture.Height+7)/8), 1)
 	gl.MemoryBarrier(gl.ALL_BARRIER_BITS)
 }
@@ -59,14 +62,14 @@ func (renderer *Renderer) UploadScene(scene *gpu.Scene) {
 		sphereSsbo := rl.LoadShaderBuffer(uint32(len(scene.Spheres)*int(unsafe.Sizeof(scene.Spheres[0]))),
 			unsafe.Pointer(&scene.Spheres[0]),
 			rl.StaticRead)
-		rl.BindShaderBuffer(sphereSsbo, 1)
+		rl.BindShaderBuffer(sphereSsbo, 2)
 		rl.UpdateShaderBuffer(sphereSsbo, unsafe.Pointer(&scene.Spheres[0]), uint32(len(scene.Spheres)*int(unsafe.Sizeof(scene.Spheres[0]))), 0)
 	}
 	if len(scene.Materials) > 0 {
 		materialSsbo := rl.LoadShaderBuffer(uint32(len(scene.Materials)*int(unsafe.Sizeof(scene.Materials[0]))),
 			unsafe.Pointer(&scene.Materials[0]),
 			rl.StaticRead)
-		rl.BindShaderBuffer(materialSsbo, 2)
+		rl.BindShaderBuffer(materialSsbo, 3)
 		rl.UpdateShaderBuffer(materialSsbo, unsafe.Pointer(&scene.Materials[0]), uint32(len(scene.Materials)*int(unsafe.Sizeof(scene.Materials[0]))), 0)
 	}
 	sphereCount := len(scene.Spheres)

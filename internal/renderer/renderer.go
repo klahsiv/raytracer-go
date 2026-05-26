@@ -52,6 +52,7 @@ func (renderer *Renderer) Render(camera *Camera) {
 
 func (renderer *Renderer) Draw() {
 	renderer.texture.Draw()
+	rl.DrawFPS(10, 10)
 }
 
 func (renderer *Renderer) UploadScene(scene *gpu.Scene) {
@@ -91,4 +92,11 @@ func uploadSsbo[T any](data []T, binding int32) uint32 {
 	rl.BindShaderBuffer(ssbo, uint32(binding))
 
 	return ssbo
+}
+
+func (renderer *Renderer) ResetAccumulation() {
+
+	renderer.renderFrame = 0
+	gl.ClearTexImage(renderer.texture.ID, 0, gl.RGBA, gl.FLOAT, nil)
+	gl.ClearTexImage(renderer.accumulationTexture.ID, 0, gl.RGBA, gl.FLOAT, nil)
 }

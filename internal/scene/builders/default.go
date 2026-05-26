@@ -33,7 +33,7 @@ func DefaultScene() *cpu.Scene {
 	//camera.Position = rl.NewVector3(0.0, 0.0, 15.0)
 	//camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
 
-	cam := renderer.Camera{Camera: camera}
+	cam := renderer.Camera{Camera: camera, MoveSpeed: 0.1}
 	defaultScene := cpu.Scene{Spheres: spheres, Materials: materials, Camera: cam}
 	/*
 		triangles := []Triangle{

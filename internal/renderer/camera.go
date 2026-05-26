@@ -3,7 +3,8 @@ package renderer
 import rl "github.com/gen2brain/raylib-go/raylib"
 
 type Camera struct {
-	Camera rl.Camera
+	Camera    rl.Camera
+	MoveSpeed float32
 }
 
 func CreateDefaultCamera() *Camera {
@@ -32,4 +33,46 @@ func (camera *Camera) GetInverseCameraProjectionMatrix() rl.Matrix {
 	invCamProjectionMatrix := rl.MatrixInvert(proj)
 
 	return invCamProjectionMatrix
+}
+
+func (c *Camera) Update() bool {
+
+	var cameraMoved bool = false
+
+	forward := rl.GetCameraForward(&c.Camera)
+	right := rl.GetCameraRight(&c.Camera)
+	up := rl.GetCameraUp(&c.Camera)
+
+	if rl.IsKeyDown(rl.KeyW) {
+		offset := rl.Vector3Scale(forward, c.MoveSpeed)
+		c.Camera.Position = rl.Vector3Add(c.Camera.Position, offset)
+		c.Camera.Target = rl.Vector3Add(c.Camera.Target, offset)
+		cameraMoved = true
+	} else if rl.IsKeyDown(rl.KeyS) {
+		offset := rl.Vector3Scale(forward, c.MoveSpeed)
+		c.Camera.Position = rl.Vector3Subtract(c.Camera.Position, offset)
+		c.Camera.Target = rl.Vector3Subtract(c.Camera.Target, offset)
+		cameraMoved = true
+	} else if rl.IsKeyDown(rl.KeyA) {
+		offset := rl.Vector3Scale(right, c.MoveSpeed)
+		c.Camera.Position = rl.Vector3Subtract(c.Camera.Position, offset)
+		c.Camera.Target = rl.Vector3Subtract(c.Camera.Target, offset)
+		cameraMoved = true
+	} else if rl.IsKeyDown(rl.KeyD) {
+		offset := rl.Vector3Scale(right, c.MoveSpeed)
+		c.Camera.Position = rl.Vector3Add(c.Camera.Position, offset)
+		c.Camera.Target = rl.Vector3Add(c.Camera.Target, offset)
+		cameraMoved = true
+	} else if rl.IsKeyDown(rl.KeyUp) {
+		offset := rl.Vector3Scale(up, c.MoveSpeed)
+		c.Camera.Position = rl.Vector3Add(c.Camera.Position, offset)
+		c.Camera.Target = rl.Vector3Add(c.Camera.Target, offset)
+		cameraMoved = true
+	} else if rl.IsKeyDown(rl.KeyDown) {
+		offset := rl.Vector3Scale(up, c.MoveSpeed)
+		c.Camera.Position = rl.Vector3Subtract(c.Camera.Position, offset)
+		c.Camera.Target = rl.Vector3Subtract(c.Camera.Target, offset)
+		cameraMoved = true
+	}
+	return cameraMoved
 }

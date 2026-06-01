@@ -23,6 +23,21 @@ func DefaultScene() *cpu.Scene {
 		{Colour: rl.NewVector3(0.0, 0.0, 0.0), EmissionColor: rl.NewVector3(1.0, 1.0, 1.0), EmissionStrength: 1.0},
 		{Colour: rl.NewVector3(0.5, 1.0, 1.0), EmissionColor: rl.NewVector3(0.0, 0.0, 0.0), EmissionStrength: 0.0},
 	}
+	triangles := []cpu.Triangle{
+		{
+			PosA: rl.NewVector3(-10.0, 0.0, -10.0),
+			PosB: rl.NewVector3(10.0, 0.0, -10.0),
+			PosC: rl.NewVector3(0.0, 10.0, -10.0),
+
+			// Flat upward-facing normals
+			NormalA: rl.NewVector3(0.0, 0.0, 1.0),
+			NormalB: rl.NewVector3(0.0, 0.0, 1.0),
+			NormalC: rl.NewVector3(0.0, 0.0, 1.0),
+
+			// Material index = 0
+			MaterialIdx: 0,
+		},
+	}
 
 	camera := rl.Camera{}
 	camera.Fovy = 45
@@ -34,7 +49,7 @@ func DefaultScene() *cpu.Scene {
 	//camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
 
 	cam := renderer.Camera{Camera: camera, MoveSpeed: 0.1}
-	defaultScene := cpu.Scene{Spheres: spheres, Materials: materials, Camera: cam}
+	defaultScene := cpu.Scene{Spheres: spheres, Triangles: triangles, Materials: materials, Camera: cam}
 	/*
 		triangles := []Triangle{
 			{

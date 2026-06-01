@@ -73,11 +73,15 @@ func (renderer *Renderer) UploadScene(scene *gpu.Scene) {
 		rl.BindShaderBuffer(materialSsbo, 3)
 		rl.UpdateShaderBuffer(materialSsbo, unsafe.Pointer(&scene.Materials[0]), uint32(len(scene.Materials)*int(unsafe.Sizeof(scene.Materials[0]))), 0)
 	}
+	triangleSsbo := uploadSsbo(scene.Triangles, 4)
+	if triangleSsbo > 0 {
+		rl.UpdateShaderBuffer(triangleSsbo, unsafe.Pointer(&scene.Triangles[0]), uint32(len(scene.Triangles)*int(unsafe.Sizeof(scene.Triangles[0]))), 0)
+	}
 	sphereCount := len(scene.Spheres)
 	sphereCountLoc := renderer.shader.GetUniformLocation("sphereCount")
 	gl.Uniform1i(sphereCountLoc, int32(sphereCount))
 
-	triangleCount := 0
+	triangleCount := len(scene.Triangles)
 	triangleCountLoc := renderer.shader.GetUniformLocation("triangleCount")
 	gl.Uniform1i(triangleCountLoc, int32(triangleCount))
 }

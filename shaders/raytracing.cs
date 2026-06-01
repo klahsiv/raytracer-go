@@ -129,8 +129,6 @@ HitInfo RayTriangle(Ray ray, Triangle tri){
   float v = -dot(edgeAB, dao) * invDet;
   float w = 1.0 - u - v;
 
-
-
   HitInfo hitInfo;
   hitInfo.didHit = (determinant >= 1E-6 && dst >= 0 && u >= 0 && v >= 0 && w >= 0) ? 1 : 0;
   hitInfo.hitPoint = ray.origin + ray.dir * dst;
@@ -162,7 +160,6 @@ HitInfo CalculateRayCollison(Ray ray){
     }
   }
 
-  /*
   for(int i = 0; i < int(triangleCount); i++){
     Triangle tri = triangles[i];
     int materialIdx = int(spheres[i].material.x);
@@ -175,7 +172,6 @@ HitInfo CalculateRayCollison(Ray ray){
       closestHit.material = material;
     }
   }
-  */
   return closestHit;
 }
 

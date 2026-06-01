@@ -17,6 +17,17 @@ func BuildGpuScene(scene *cpu.Scene) *gpu.Scene {
 			MaterialId:   rl.NewVector4(float32(sphere.MaterialIdx), 0.0, 0.0, 0.0)})
 	}
 
+	for _, triangle := range scene.Triangles {
+		gpuScene.Triangles = append(gpuScene.Triangles, gpu.Triangle{
+			PosA:       rl.NewVector4(triangle.PosA.X, triangle.PosA.Y, triangle.PosA.Z, 0.0),
+			PosB:       rl.NewVector4(triangle.PosB.X, triangle.PosB.Y, triangle.PosB.Z, 0.0),
+			PosC:       rl.NewVector4(triangle.PosC.X, triangle.PosC.Y, triangle.PosC.Z, 0.0),
+			NormalA:    rl.NewVector4(triangle.NormalA.X, triangle.NormalA.Y, triangle.NormalA.Z, 0.0),
+			NormalB:    rl.NewVector4(triangle.NormalB.X, triangle.NormalB.Y, triangle.NormalB.Z, 0.0),
+			NormalC:    rl.NewVector4(triangle.NormalC.X, triangle.NormalC.Y, triangle.NormalC.Z, 0.0),
+			MaterialId: rl.NewVector4(float32(triangle.MaterialIdx), 0.0, 0.0, 0.0)})
+	}
+
 	for _, material := range scene.Materials {
 		gpuScene.Materials = append(gpuScene.Materials, gpu.Material{Colour: rl.NewVector4(material.Colour.X, material.Colour.Y, material.Colour.Z, 1.0),
 			Emission: rl.NewVector4(material.EmissionColor.X, material.EmissionColor.Y, material.EmissionColor.Z, material.EmissionStrength)})

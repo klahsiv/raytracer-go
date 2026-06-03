@@ -27,12 +27,12 @@ func DefaultScene() *cpu.Scene {
 		{
 			PosA: rl.NewVector3(-10.0, 0.0, -10.0),
 			PosB: rl.NewVector3(10.0, 0.0, -10.0),
-			PosC: rl.NewVector3(0.0, 10.0, -10.0),
+			PosC: rl.NewVector3(0.0, 00.0, -50.0),
 
 			// Flat upward-facing normals
-			NormalA: rl.NewVector3(0.0, 0.0, 1.0),
-			NormalB: rl.NewVector3(0.0, 0.0, 1.0),
-			NormalC: rl.NewVector3(0.0, 0.0, 1.0),
+			NormalA: rl.NewVector3(0.0, 1.0, 0.0),
+			NormalB: rl.NewVector3(0.0, 1.0, 0.0),
+			NormalC: rl.NewVector3(0.0, 1.0, 0.0),
 
 			// Material index = 0
 			MaterialIdx: 0,
@@ -48,8 +48,13 @@ func DefaultScene() *cpu.Scene {
 	//camera.Position = rl.NewVector3(0.0, 0.0, 15.0)
 	//camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
 
-	cam := renderer.Camera{Camera: camera, MoveSpeed: 0.1}
-	defaultScene := cpu.Scene{Spheres: spheres, Triangles: triangles, Materials: materials, Camera: cam}
+	//cam := renderer.Camera{Camera: camera, MoveSpeed: 0.1}
+	cam := renderer.NewCamera(
+		rl.NewVector3(-7.08, 35.97, 22.82),
+		rl.NewVector3(0.0, 0.0, 0.0),
+		45, rl.CameraPerspective)
+	//{Camera: camera, MoveSpeed: 0.1}
+	defaultScene := cpu.Scene{Spheres: spheres, Triangles: triangles, Materials: materials, Camera: *cam}
 	/*
 		triangles := []Triangle{
 			{

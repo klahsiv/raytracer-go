@@ -13,7 +13,7 @@ func DefaultScene() *cpu.Scene {
 		{Center: rl.NewVector3(0.0, 0.0, -1.0), Radius: 8.0, MaterialIdx: 0},
 		{Center: rl.NewVector3(20.0, 0.0, -1.0), Radius: 10.0, MaterialIdx: 1},
 		{Center: rl.NewVector3(-20.0, 0.0, -1.0), Radius: 6.0, MaterialIdx: 2},
-		{Center: rl.NewVector3(0.0, 0.0, -500.0), Radius: 450.0, MaterialIdx: 3},
+		//{Center: rl.NewVector3(0.0, 0.0, -500.0), Radius: 450.0, MaterialIdx: 3},
 		{Center: rl.NewVector3(0.0, -510.0, 0.0), Radius: 500.0, MaterialIdx: 4},
 	}
 	materials := []cpu.Material{
@@ -39,20 +39,11 @@ func DefaultScene() *cpu.Scene {
 		},
 	}
 
-	camera := rl.Camera{}
-	camera.Fovy = 45
-	camera.Position = rl.NewVector3(-7.08, 35.97, 22.82)
-	camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
-	camera.Up = rl.NewVector3(0.0, 1.0, 0.0)
-	camera.Projection = rl.CameraPerspective
-	//camera.Position = rl.NewVector3(0.0, 0.0, 15.0)
-	//camera.Target = rl.NewVector3(0.0, 0.0, 0.0)
-
-	//cam := renderer.Camera{Camera: camera, MoveSpeed: 0.1}
-	cam := renderer.NewCamera(
-		rl.NewVector3(-7.08, 35.97, 22.82),
-		rl.NewVector3(0.0, 0.0, 0.0),
-		45, rl.CameraPerspective)
+	//postion := rl.NewVector3(-7.08, 35.97, 22.82)
+	postion := rl.NewVector3(0, 10, 20)
+	target := rl.NewVector3(0.0, 0.0, 0.0)
+	fovy := float32(45)
+	cam := renderer.NewCamera(postion, target, fovy, rl.CameraPerspective)
 	//{Camera: camera, MoveSpeed: 0.1}
 	defaultScene := cpu.Scene{Spheres: spheres, Triangles: triangles, Materials: materials, Camera: *cam}
 	/*

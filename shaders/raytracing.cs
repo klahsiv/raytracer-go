@@ -18,6 +18,10 @@ uniform int iFrame;
 uniform int sphereCount;
 uniform int triangleCount;
 
+uniform vec3 sunDirection;
+uniform vec3 sunColor;
+uniform float sunIntensity;
+
 struct Sphere{
   // XYZ -> Center, W -> Radius
   vec4 pos;
@@ -85,6 +89,31 @@ vec3 RandomUnitVector(inout int state)
     float y = r * sin(a);
     return vec3(x, y, z);
 }
+
+vec3 Sky(Ray ray){
+    float skyGradientT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
+
+    float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
+
+    vec3 horizonColour = vec3(0.9, 0.95, 1.0);
+    vec3 zenithColour = vec3(0.3, 0.5, 1.0);
+    vec3 groundColour = vec3(0.25, 0.25, 0.25);
+
+    vec3 skyGradient = mix(horizonColour, zenithColour, skyGradientT);
+
+    vec3 sunDir = normalize(vec3(10.0, 20.0, 5.0));
+    float sunFocus = 100.0;
+    float sunIntensity = 200.0;
+
+    float sun = pow(max(0.0, dot(ray.dir, sunDir)), sunFocus) * sunIntensity;
+
+    vec3 composite = mix(groundColour, skyGradient, groundToSkyT);
+    //vec3 composite = vec3(0.0);
+
+    return composite + vec3(sun);
+    //return composite;
+}
+
 HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius){
 
   HitInfo hitInfo;
@@ -138,7 +167,7 @@ HitInfo RayTriangle(Ray ray, Triangle tri){
   return hitInfo;
 }
 
-HitInfo CalculateRayCollison(Ray ray){
+HitInfo CalculateRayCollision(Ray ray){
 
   HitInfo closestHit;
   closestHit.didHit = 0;
@@ -162,7 +191,7 @@ HitInfo CalculateRayCollison(Ray ray){
 
   for(int i = 0; i < int(triangleCount); i++){
     Triangle tri = triangles[i];
-    int materialIdx = int(spheres[i].material.x);
+    int materialIdx = int(tri.material.x);
     RayTracingMaterial material = materials[materialIdx];
 
     HitInfo hitInfo = RayTriangle(ray, tri);
@@ -179,7 +208,7 @@ vec3 TraceRay(Ray ray, inout int rngState){
   vec3 colour = vec3(1.0);
   vec3 incomingLight = vec3(0.0);
   for(int i = 0; i < MAX_BOUNCE_COUNT; i++){
-    HitInfo hitInfo = CalculateRayCollison(ray);
+    HitInfo hitInfo = CalculateRayCollision(ray);
 
     if(hitInfo.didHit > 0){
       ray.origin = hitInfo.hitPoint;
@@ -191,11 +220,15 @@ vec3 TraceRay(Ray ray, inout int rngState){
       colour *= material.colour.xyz;
     }
     else {
-      //incomingLight += vec3(0.2, 0.3, 0.5);
+      incomingLight += Sky(ray) * colour;
+      //incomingLight += sky(ray.dir) * colour;
+        //vec3(0.2, 0.3, 0.5);
       break;
     }
   }
   return incomingLight;
+  //return Sky(ray);
+  //return vec3(1.0, 0.0, 1.0);
 }
 
 void main(){

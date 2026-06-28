@@ -8,24 +8,33 @@ import (
 
 func MeshToTriangles(mesh cpu.ObjMesh, materialIdx int) []cpu.Triangle {
 	var triangles []cpu.Triangle
-	for _, face := range mesh.Face {
-		vertexA := mesh.Vertices[face.A]
-		vertexB := mesh.Vertices[face.B]
-		vertexC := mesh.Vertices[face.C]
+	for _, face := range mesh.Faces {
+		for i := 1; i < len(face.Vertices)-1; i++ {
+			v0 := face.Vertices[0]
+			v1 := face.Vertices[i]
+			v2 := face.Vertices[i+1]
 
-		normal := calculateFaceNormal(vertexA, vertexB, vertexC)
+			va := mesh.Vertices[v0.VertexIdx]
+			vb := mesh.Vertices[v1.VertexIdx]
+			vc := mesh.Vertices[v2.VertexIdx]
 
-		triangles = append(triangles, cpu.Triangle{
-			PosA: vertexA,
-			PosB: vertexB,
-			PosC: vertexC,
+			na := mesh.Normals[v0.NormalIdx]
+			nb := mesh.Normals[v1.NormalIdx]
+			nc := mesh.Normals[v2.NormalIdx]
 
-			NormalA: normal,
-			NormalB: normal,
-			NormalC: normal,
+			triangles = append(triangles, cpu.Triangle{
+				PosA: va,
+				PosB: vb,
+				PosC: vc,
 
-			MaterialIdx: materialIdx,
-		})
+				NormalA: na,
+				NormalB: nb,
+				NormalC: nc,
+
+				MaterialIdx: materialIdx,
+			})
+		}
+
 	}
 
 	return triangles

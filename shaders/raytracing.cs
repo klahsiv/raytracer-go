@@ -3,7 +3,7 @@
 #define PI 3.141592653589793 
 #define MAX_SPHERE_COUNT 12
 #define MAX_BOUNCE_COUNT 8 
-#define NUM_RAYS_PER_PIXEL 10
+#define NUM_RAYS_PER_PIXEL 4
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
@@ -189,7 +189,7 @@ HitInfo CalculateRayCollision(Ray ray){
     }
   }
 
-  for(int i = 0; i < int(triangleCount); i++){
+  for(int i = 0; i < min(int(triangleCount), 1000); i++){
     Triangle tri = triangles[i];
     int materialIdx = int(tri.material.x);
     RayTracingMaterial material = materials[materialIdx];
@@ -207,9 +207,17 @@ HitInfo CalculateRayCollision(Ray ray){
 vec3 TraceRay(Ray ray, inout int rngState){
   vec3 colour = vec3(1.0);
   vec3 incomingLight = vec3(0.0);
+
+
+    HitInfo hit = CalculateRayCollision(ray);
+    if(hit.didHit == 0)
+        return Sky(ray);
+
+    return hit.normal * 0.5 + 0.5;
   for(int i = 0; i < MAX_BOUNCE_COUNT; i++){
     HitInfo hitInfo = CalculateRayCollision(ray);
 
+    /*
     if(hitInfo.didHit > 0){
       ray.origin = hitInfo.hitPoint;
       ray.dir = normalize(hitInfo.normal + RandomUnitVector(rngState));
@@ -221,14 +229,11 @@ vec3 TraceRay(Ray ray, inout int rngState){
     }
     else {
       incomingLight += Sky(ray) * colour;
-      //incomingLight += sky(ray.dir) * colour;
-        //vec3(0.2, 0.3, 0.5);
       break;
     }
+    */
   }
   return incomingLight;
-  //return Sky(ray);
-  //return vec3(1.0, 0.0, 1.0);
 }
 
 void main(){

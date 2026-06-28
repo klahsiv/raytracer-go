@@ -10,9 +10,9 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func CubeMeshScene() *cpu.Scene {
+func SuzanneScene() *cpu.Scene {
 
-	cubeMeshPath := "assets/cube.obj"
+	cubeMeshPath := "assets/suzanne.obj"
 	materials := []cpu.Material{
 		{Colour: rl.NewVector3(1.0, 0.0, 0.0), EmissionColor: rl.NewVector3(0.0, 0.0, 0.0), EmissionStrength: 0.0},
 	}
@@ -24,6 +24,9 @@ func CubeMeshScene() *cpu.Scene {
 
 	triangles := convert.MeshToTriangles(cubeMesh, 0)
 	fmt.Println("Triangles : ", len(triangles))
+	fmt.Println("Triangles 0: ", triangles[0])
+	fmt.Println("Triangles 100: ", triangles[100])
+	fmt.Println("Triangles 500: ", triangles[500])
 
 	postion := rl.NewVector3(0, 0, -10)
 	target := rl.NewVector3(0, 0, 0)

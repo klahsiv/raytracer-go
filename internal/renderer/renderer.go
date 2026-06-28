@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"fmt"
 	"ray-tracing/internal/scene/gpu"
 	"unsafe"
 
@@ -84,6 +85,8 @@ func (renderer *Renderer) UploadScene(scene *gpu.Scene) {
 	triangleCount := len(scene.Triangles)
 	triangleCountLoc := renderer.shader.GetUniformLocation("triangleCount")
 	gl.Uniform1i(triangleCountLoc, int32(triangleCount))
+
+	fmt.Println("Upload Scene")
 }
 
 func uploadSsbo[T any](data []T, binding int32) uint32 {

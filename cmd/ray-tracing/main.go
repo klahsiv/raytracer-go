@@ -19,8 +19,8 @@ func main() {
 	width := rl.GetScreenWidth()
 	height := rl.GetScreenHeight()
 
-	//scene := builders.CubeScene()
-	scene := builders.CubeMeshScene()
+	//scene := builders.CubeMeshScene()
+	scene := builders.SuzanneScene()
 	gpuScene := convert.BuildGpuScene(scene)
 
 	r := renderer.NewRenderer(width, height)

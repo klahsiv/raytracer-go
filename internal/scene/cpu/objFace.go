@@ -1,7 +1,10 @@
 package cpu
 
+type ObjVertex struct {
+	VertexIdx int
+	NormalIdx int
+}
+
 type ObjFace struct {
-	A int
-	B int
-	C int
+	Vertices []ObjVertex
 }

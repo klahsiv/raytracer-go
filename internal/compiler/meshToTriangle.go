@@ -1,4 +1,4 @@
-package convert
+package compiler
 
 import (
 	"ray-tracing/internal/scene/cpu"

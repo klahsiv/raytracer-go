@@ -1,13 +1,14 @@
-package convert
+package compiler
 
 import (
+	"ray-tracing/internal/bvh"
 	"ray-tracing/internal/scene/cpu"
 	"ray-tracing/internal/scene/gpu"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func BuildGpuScene(scene *cpu.Scene) *gpu.Scene {
+func BuildGpuScene(scene *cpu.Scene, primitives []bvh.Primitive, tree *bvh.Tree) *gpu.Scene {
 
 	gpuScene := &gpu.Scene{}
 
@@ -32,6 +33,22 @@ func BuildGpuScene(scene *cpu.Scene) *gpu.Scene {
 		gpuScene.Materials = append(gpuScene.Materials, gpu.Material{Colour: rl.NewVector4(material.Colour.X, material.Colour.Y, material.Colour.Z, 1.0),
 			Emission: rl.NewVector4(material.EmissionColor.X, material.EmissionColor.Y, material.EmissionColor.Z, material.EmissionStrength)})
 	}
+
+	for _, primitive := range primitives {
+		gpuScene.Primitives = append(gpuScene.Primitives, gpu.GpuPrimitive{
+			SsboInfo: rl.NewVector4(float32(primitive.Type), float32(primitive.Index), 0.0, 0.0),
+		})
+	}
+
+	for _, node := range tree.Nodes {
+		gpuScene.Nodes = append(gpuScene.Nodes, gpu.GpuNode{
+			Min:      rl.NewVector4(node.Bounds.Min.X, node.Bounds.Min.Y, node.Bounds.Min.Z, 0.0),
+			Max:      rl.NewVector4(node.Bounds.Max.X, node.Bounds.Max.Y, node.Bounds.Max.Z, 0.0),
+			NodeInfo: rl.NewVector4(float32(node.Left), float32(node.Right), float32(node.FirstPrimitive), float32(node.PrimitiveCount)),
+		})
+	}
+
+	gpuScene.PrimitiveIndices = append(gpuScene.PrimitiveIndices, tree.PrimitiveIndices...)
 
 	return gpuScene
 }

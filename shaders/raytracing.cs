@@ -1,9 +1,11 @@
 #version 460 core
 
 #define PI 3.141592653589793 
-#define MAX_SPHERE_COUNT 12
 #define MAX_BOUNCE_COUNT 8 
 #define NUM_RAYS_PER_PIXEL 4
+
+const float INF = 1e30;
+const int STACK_SIZE = 64;
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
@@ -41,6 +43,19 @@ struct RayTracingMaterial{
   // XYZ -> Colour, W -> Strength
   vec4 emission;
 };
+
+struct Node {
+  vec4 minBound;
+  vec4 maxBound;
+	// nodeInfo :  X -> Left, Y -> Right, Z -> First Primitive, W -> Primitive Count
+  vec4 nodeInfo;
+};
+
+struct Primitive { 
+	// ssboInfo : X -> Type, Y -> SSBO Index
+  vec4 ssboInfo;
+};
+
 layout(std430, binding = 2) buffer Spheres {
   Sphere spheres[];
 };
@@ -49,6 +64,15 @@ layout(std430, binding = 3) buffer Materials{
 };
 layout(std430, binding = 4) buffer Triangles{
   Triangle triangles[];
+};
+layout(std430, binding = 5) buffer Nodes {
+  Node nodes[];
+};
+layout(std430, binding = 6) buffer Primitives{
+  Primitive primitives[];
+};
+layout(std430, binding = 7) buffer PrimitivesIndices{
+  int primitiveIndices[];
 };
 
 
@@ -92,7 +116,6 @@ vec3 RandomUnitVector(inout int state)
 
 vec3 Sky(Ray ray){
     float skyGradientT = pow(smoothstep(0.0, 0.4, ray.dir.y), 0.35);
-
     float groundToSkyT = smoothstep(-0.01, 0.0, ray.dir.y);
 
     vec3 horizonColour = vec3(0.9, 0.95, 1.0);
@@ -108,17 +131,12 @@ vec3 Sky(Ray ray){
     float sun = pow(max(0.0, dot(ray.dir, sunDir)), sunFocus) * sunIntensity;
 
     vec3 composite = mix(groundColour, skyGradient, groundToSkyT);
-    //vec3 composite = vec3(0.0);
-
     return composite + vec3(sun);
-    //return composite;
 }
 
-HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius){
-
-  HitInfo hitInfo;
-  hitInfo.didHit = 0;
-
+void RaySphere(Ray ray, Sphere sphere, inout HitInfo hitInfo){
+  vec3 sphereCenter = sphere.pos.xyz;
+  float sphereRadius = sphere.pos.w;
   vec3 oc = ray.origin - sphereCenter;
 
   float a = dot(ray.dir, ray.dir);
@@ -130,18 +148,20 @@ HitInfo RaySphere(Ray ray, vec3 sphereCenter, float sphereRadius){
   if(discriminant >= 0.0){
     float dst = (-b - sqrt(discriminant)) / (2.0 * a);
 
-    if(dst >= 0.0){
+    if(dst >= 0.0 && dst < hitInfo.dst){
       hitInfo.didHit = 1;
       hitInfo.dst = dst;
       hitInfo.hitPoint = ray.origin + ray.dir * dst;
       hitInfo.normal = normalize(hitInfo.hitPoint - sphereCenter);
+
+      int materialIdx = int(sphere.material.x);
+      RayTracingMaterial material = materials[materialIdx];
+      hitInfo.material = material;
     }
   }
-
-  return hitInfo;
 }
 
-HitInfo RayTriangle(Ray ray, Triangle tri){
+void RayTriangle(Ray ray, Triangle tri, inout HitInfo hitInfo){
 
   vec3 edgeAB = (tri.posB - tri.posA).xyz;
   vec3 edgeAC = (tri.posC - tri.posA).xyz;
@@ -158,13 +178,85 @@ HitInfo RayTriangle(Ray ray, Triangle tri){
   float v = -dot(edgeAB, dao) * invDet;
   float w = 1.0 - u - v;
 
-  HitInfo hitInfo;
-  hitInfo.didHit = (determinant >= 1E-6 && dst >= 0 && u >= 0 && v >= 0 && w >= 0) ? 1 : 0;
-  hitInfo.hitPoint = ray.origin + ray.dir * dst;
-  hitInfo.normal = normalize(tri.normalA * w + tri.normalB * u + tri.normalC * v).xyz;
-  hitInfo.dst = dst;
+  int didHit = (determinant >= 1E-6 && dst >= 0 && u >= 0 && v >= 0 && w >= 0) ? 1 : 0;
 
-  return hitInfo;
+  if (didHit > 0 && dst < hitInfo.dst) {
+    hitInfo.didHit = didHit;
+    hitInfo.hitPoint = ray.origin + ray.dir * dst;
+    hitInfo.normal = normalize(tri.normalA * w + tri.normalB * u + tri.normalC * v).xyz;
+    hitInfo.dst = dst;
+    
+    int materialIdx = int(tri.material.x);
+    RayTracingMaterial material = materials[materialIdx];
+
+    hitInfo.material = material;
+  }
+}
+
+void IntersectPrimitive(Ray ray, Primitive primitive, inout HitInfo closest){
+
+  int type = int(primitive.ssboInfo.x);
+  int idx = int(primitive.ssboInfo.y);
+  switch (type){
+    case 0:
+      RaySphere(ray, spheres[idx], closest);
+      break;
+    case 1:
+      RayTriangle(ray, triangles[idx], closest);
+      break;
+  }
+}
+
+bool RayAABB(Ray ray, vec3 minBound, vec3 maxBound, float maxDistance){
+  vec3 invDir = 1.0 / ray.dir;
+  vec3 t0 = (minBound - ray.origin) * invDir;
+  vec3 t1 = (maxBound - ray.origin) * invDir;
+
+  vec3 tmin = min(t0, t1);
+  vec3 tmax = max(t0, t1);
+
+  float nearT = max(max(tmin.x, tmin.y), tmin.z);
+  float farT  = min(min(tmax.x, tmax.y), tmax.z);
+
+  return ( farT >= max(nearT, 0.0) && nearT < maxDistance);
+}
+
+
+HitInfo TraverseBVH(Ray ray){
+  HitInfo closestHit;
+  closestHit.didHit = 0;
+  closestHit.dst = INF;
+
+  int stack[STACK_SIZE];
+  int stackPtr = 0;
+
+  // Root Node
+  stack[stackPtr++] = 0;
+
+  while(stackPtr > 0){
+    int nodeIdx = stack[--stackPtr];
+    Node node = nodes[nodeIdx];
+
+    if(!RayAABB(ray, node.minBound.xyz, node.maxBound.xyz, closestHit.dst)) { 
+      continue;
+    }
+
+    if(node.nodeInfo.w > 0) {
+      int first = int(node.nodeInfo.z);
+      int count = int(node.nodeInfo.w);
+
+      for(int i = 0; i < count; i++){
+        int primitiveIdx = primitiveIndices[first + i];
+        Primitive primitive = primitives[primitiveIdx];
+        IntersectPrimitive(ray, primitive, closestHit);
+      }
+    }
+    else{
+      stack[stackPtr++] = int(node.nodeInfo.x);
+      stack[stackPtr++] = int(node.nodeInfo.y);
+    }
+  }
+  return closestHit;
 }
 
 HitInfo CalculateRayCollision(Ray ray){
@@ -176,48 +268,26 @@ HitInfo CalculateRayCollision(Ray ray){
   closestHit.material = initMaterial;
 
   for(int i = 0; i < int(sphereCount); i++){
-    vec3 center = spheres[i].pos.xyz;
-    float radius = spheres[i].pos.w;
-    int materialIdx = int(spheres[i].material.x);
-    RayTracingMaterial material = materials[materialIdx];
-
-    HitInfo hitInfo = RaySphere(ray, center, radius);
-
-    if(hitInfo.didHit > 0 && hitInfo.dst < closestHit.dst) {
-      closestHit = hitInfo;
-      closestHit.material = material;
-    }
+    Sphere sphere = spheres[i];
+    RaySphere(ray, sphere, closestHit);
   }
 
-  for(int i = 0; i < min(int(triangleCount), 1000); i++){
+  for(int i = 0; i < int(triangleCount); i++){
     Triangle tri = triangles[i];
-    int materialIdx = int(tri.material.x);
-    RayTracingMaterial material = materials[materialIdx];
-
-    HitInfo hitInfo = RayTriangle(ray, tri);
-
-    if(hitInfo.didHit > 0 && hitInfo.dst < closestHit.dst) {
-      closestHit = hitInfo;
-      closestHit.material = material;
-    }
+    RayTriangle(ray, tri, closestHit);
   }
   return closestHit;
 }
 
 vec3 TraceRay(Ray ray, inout int rngState){
+
   vec3 colour = vec3(1.0);
   vec3 incomingLight = vec3(0.0);
 
-
-    HitInfo hit = CalculateRayCollision(ray);
-    if(hit.didHit == 0)
-        return Sky(ray);
-
-    return hit.normal * 0.5 + 0.5;
   for(int i = 0; i < MAX_BOUNCE_COUNT; i++){
-    HitInfo hitInfo = CalculateRayCollision(ray);
+    //HitInfo hitInfo = CalculateRayCollision(ray);
+    HitInfo hitInfo = TraverseBVH(ray);
 
-    /*
     if(hitInfo.didHit > 0){
       ray.origin = hitInfo.hitPoint;
       ray.dir = normalize(hitInfo.normal + RandomUnitVector(rngState));
@@ -231,10 +301,10 @@ vec3 TraceRay(Ray ray, inout int rngState){
       incomingLight += Sky(ray) * colour;
       break;
     }
-    */
   }
   return incomingLight;
 }
+
 
 void main(){
 
@@ -274,12 +344,6 @@ void main(){
     imageStore(accumulation, pixel, vec4(previousColour, 1.0));
 
     vec3 accumulatedColour = previousColour / iFrame;
-    /*
-    int idx = int(gl_FragCoord.x) + int(gl_FragCoord.y * resolution.x);
-    accumulation[idx].xyz += pixelColor;
-    vec3 texel = accumulation[idx].xyz / iFrame;
-    */
-
     imageStore(renderImage, pixel, vec4(accumulatedColour, 1.0));
 
 }

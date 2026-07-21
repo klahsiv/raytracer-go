@@ -1,9 +1,9 @@
 package main
 
 import (
+	"ray-tracing/internal/compiler"
 	"ray-tracing/internal/renderer"
 	"ray-tracing/internal/scene/builders"
-	"ray-tracing/internal/scene/convert"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	gl "github.com/go-gl/gl/v4.6-core/gl"
@@ -21,11 +21,11 @@ func main() {
 
 	//scene := builders.CubeMeshScene()
 	scene := builders.SuzanneScene()
-	gpuScene := convert.BuildGpuScene(scene)
+	renderScene := compiler.BuildRenderScene(scene)
 
 	r := renderer.NewRenderer(width, height)
 
-	r.UploadScene(gpuScene)
+	r.UploadScene(&renderScene.GPUScene)
 	rl.DisableCursor()
 
 	for !rl.WindowShouldClose() {

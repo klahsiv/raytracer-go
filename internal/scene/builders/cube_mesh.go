@@ -2,9 +2,9 @@ package builders
 
 import (
 	"fmt"
+	"ray-tracing/internal/compiler"
 	"ray-tracing/internal/obj"
 	"ray-tracing/internal/renderer"
-	"ray-tracing/internal/scene/convert"
 	"ray-tracing/internal/scene/cpu"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -22,7 +22,7 @@ func CubeMeshScene() *cpu.Scene {
 		panic("Error Loading ObjMesh")
 	}
 
-	triangles := convert.MeshToTriangles(cubeMesh, 0)
+	triangles := compiler.MeshToTriangles(cubeMesh, 0)
 	fmt.Println("Triangles : ", len(triangles))
 
 	postion := rl.NewVector3(0, 0, -10)

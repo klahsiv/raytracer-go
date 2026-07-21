@@ -60,24 +60,36 @@ func (renderer *Renderer) UploadScene(scene *gpu.Scene) {
 
 	gl.UseProgram(renderer.shader.programID)
 
-	if len(scene.Spheres) > 0 {
-		sphereSsbo := rl.LoadShaderBuffer(uint32(len(scene.Spheres)*int(unsafe.Sizeof(scene.Spheres[0]))),
-			unsafe.Pointer(&scene.Spheres[0]),
-			rl.StaticRead)
-		rl.BindShaderBuffer(sphereSsbo, 2)
+	sphereSsbo := uploadSsbo(scene.Spheres, 2)
+	if sphereSsbo > 0 {
 		rl.UpdateShaderBuffer(sphereSsbo, unsafe.Pointer(&scene.Spheres[0]), uint32(len(scene.Spheres)*int(unsafe.Sizeof(scene.Spheres[0]))), 0)
 	}
-	if len(scene.Materials) > 0 {
-		materialSsbo := rl.LoadShaderBuffer(uint32(len(scene.Materials)*int(unsafe.Sizeof(scene.Materials[0]))),
-			unsafe.Pointer(&scene.Materials[0]),
-			rl.StaticRead)
-		rl.BindShaderBuffer(materialSsbo, 3)
+
+	materialSsbo := uploadSsbo(scene.Materials, 3)
+	if materialSsbo > 0 {
 		rl.UpdateShaderBuffer(materialSsbo, unsafe.Pointer(&scene.Materials[0]), uint32(len(scene.Materials)*int(unsafe.Sizeof(scene.Materials[0]))), 0)
 	}
+
 	triangleSsbo := uploadSsbo(scene.Triangles, 4)
 	if triangleSsbo > 0 {
 		rl.UpdateShaderBuffer(triangleSsbo, unsafe.Pointer(&scene.Triangles[0]), uint32(len(scene.Triangles)*int(unsafe.Sizeof(scene.Triangles[0]))), 0)
 	}
+
+	nodeSsbo := uploadSsbo(scene.Nodes, 5)
+	if nodeSsbo > 0 {
+		rl.UpdateShaderBuffer(nodeSsbo, unsafe.Pointer(&scene.Nodes[0]), uint32(len(scene.Nodes)*int(unsafe.Sizeof(scene.Nodes[0]))), 0)
+	}
+
+	primitiveSsbo := uploadSsbo(scene.Primitives, 6)
+	if primitiveSsbo > 0 {
+		rl.UpdateShaderBuffer(primitiveSsbo, unsafe.Pointer(&scene.Primitives[0]), uint32(len(scene.Primitives)*int(unsafe.Sizeof(scene.Primitives[0]))), 0)
+	}
+
+	primitiveIndicesSsbo := uploadSsbo(scene.PrimitiveIndices, 7)
+	if primitiveIndicesSsbo > 0 {
+		rl.UpdateShaderBuffer(primitiveIndicesSsbo, unsafe.Pointer(&scene.PrimitiveIndices[0]), uint32(len(scene.PrimitiveIndices)*int(unsafe.Sizeof(scene.PrimitiveIndices[0]))), 0)
+	}
+
 	sphereCount := len(scene.Spheres)
 	sphereCountLoc := renderer.shader.GetUniformLocation("sphereCount")
 	gl.Uniform1i(sphereCountLoc, int32(sphereCount))

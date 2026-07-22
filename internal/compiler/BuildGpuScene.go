@@ -48,7 +48,10 @@ func BuildGpuScene(scene *cpu.Scene, primitives []bvh.Primitive, tree *bvh.Tree)
 		})
 	}
 
-	gpuScene.PrimitiveIndices = append(gpuScene.PrimitiveIndices, tree.PrimitiveIndices...)
+	//gpuScene.PrimitiveIndices = append(gpuScene.PrimitiveIndices, tree.PrimitiveIndices...)
 
+	for _, idx := range tree.PrimitiveIndices {
+		gpuScene.PrimitiveIndices = append(gpuScene.PrimitiveIndices, int32(idx))
+	}
 	return gpuScene
 }

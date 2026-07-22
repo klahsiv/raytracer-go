@@ -6,5 +6,5 @@ type Scene struct {
 	Materials        []Material
 	Primitives       []GpuPrimitive
 	Nodes            []GpuNode
-	PrimitiveIndices []int
+	PrimitiveIndices []int32
 }

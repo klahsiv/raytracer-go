@@ -75,6 +75,19 @@ layout(std430, binding = 7) buffer PrimitivesIndices{
   int primitiveIndices[];
 };
 
+struct DebugStats
+{
+    uint nodesVisited;
+    uint leafVisited;
+    uint triangleTests;
+    uint rays;
+};
+
+layout(std430, binding = 8) buffer DebugBuffer
+{
+    DebugStats stats;
+};
+
 
 struct Ray{
   vec3 origin;
@@ -229,6 +242,10 @@ HitInfo TraverseBVH(Ray ray){
 
   int stack[STACK_SIZE];
   int stackPtr = 0;
+  int nodesVisited = 0;
+  int aabbTests = 0;
+  int leafNodesVisited = 0;
+  int triangleTests = 0;
 
   // Root Node
   stack[stackPtr++] = 0;
@@ -237,13 +254,17 @@ HitInfo TraverseBVH(Ray ray){
     int nodeIdx = stack[--stackPtr];
     Node node = nodes[nodeIdx];
 
+    aabbTests++;
     if(!RayAABB(ray, node.minBound.xyz, node.maxBound.xyz, closestHit.dst)) { 
       continue;
     }
+    nodesVisited++;
 
     if(node.nodeInfo.w > 0) {
       int first = int(node.nodeInfo.z);
       int count = int(node.nodeInfo.w);
+      leafNodesVisited++;
+      triangleTests += count;
 
       for(int i = 0; i < count; i++){
         int primitiveIdx = primitiveIndices[first + i];
@@ -256,6 +277,13 @@ HitInfo TraverseBVH(Ray ray){
       stack[stackPtr++] = int(node.nodeInfo.y);
     }
   }
+
+  /*
+  atomicAdd(stats.nodesVisited, nodesVisited);
+  atomicAdd(stats.leafVisited, leafNodesVisited);
+  atomicAdd(stats.triangleTests, triangleTests);
+  atomicAdd(stats.rays, 1);
+  */
   return closestHit;
 }
 
@@ -283,6 +311,7 @@ vec3 TraceRay(Ray ray, inout int rngState){
 
   vec3 colour = vec3(1.0);
   vec3 incomingLight = vec3(0.0);
+
 
   for(int i = 0; i < MAX_BOUNCE_COUNT; i++){
     //HitInfo hitInfo = CalculateRayCollision(ray);

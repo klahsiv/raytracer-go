@@ -1,6 +1,9 @@
 package bvh
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+	"slices"
+)
 
 const MaxLeafSize = 2
 
@@ -49,8 +52,20 @@ func (b *Builder) SubDivide(tree *Tree, idx int) {
 	}
 
 	axis := node.Bounds.LongestAxis()
-	splitPos := Component(node.Bounds.Min, axis) + Component(node.Bounds.Extent(), axis)*0.5
+	//splitPos := Component(node.Bounds.Min, axis) + Component(node.Bounds.Extent(), axis)*0.5
+	centroids := make([]float32, node.PrimitiveCount)
 
+	for i := 0; i < node.PrimitiveCount; i++ {
+		centroids[i] = Component(
+			b.primitives[tree.PrimitiveIndices[node.FirstPrimitive+i]].Centroid,
+			axis,
+		)
+	}
+
+	//sort.Sort( sort.Float32Slice(centroids) )
+	slices.Sort(centroids)
+
+	splitPos := centroids[len(centroids)/2]
 	i := node.FirstPrimitive
 	j := i + node.PrimitiveCount - 1
 
@@ -73,7 +88,7 @@ func (b *Builder) SubDivide(tree *Tree, idx int) {
 	tree.Nodes = append(tree.Nodes, Node{})
 	rightIdx := len(tree.Nodes)
 	tree.Nodes = append(tree.Nodes, Node{})
-	
+
 	node = &tree.Nodes[idx]
 
 	tree.Nodes[leftIdx].FirstPrimitive = node.FirstPrimitive

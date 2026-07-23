@@ -14,6 +14,7 @@ type Renderer struct {
 	shader              ComputeShader
 	renderFrame         int32
 	accumulationTexture RenderTexture
+	debugSsbo           uint32
 }
 
 func NewRenderer(width, height int) *Renderer {
@@ -23,8 +24,22 @@ func NewRenderer(width, height int) *Renderer {
 	shader := LoadComputeShader("shaders/raytracing.cs")
 
 	renderer := Renderer{texture: *texture, shader: *shader, renderFrame: 0, accumulationTexture: *accumulationTexture}
+	renderer.debugSsbo = rl.LoadShaderBuffer(
+		uint32(unsafe.Sizeof(DebugStats{})),
+		nil,
+		rl.DynamicCopy,
+	)
+
+	rl.BindShaderBuffer(renderer.debugSsbo, 8)
 
 	return &renderer
+}
+
+type DebugStats struct {
+	nodesVisited,
+	leafVisited,
+	triangleTests,
+	rays uint32
 }
 
 func (renderer *Renderer) Render(camera *Camera) {
@@ -47,8 +62,40 @@ func (renderer *Renderer) Render(camera *Camera) {
 
 	renderer.texture.Bind(0)
 	renderer.accumulationTexture.Bind(1)
+	zero := DebugStats{}
+
+	rl.UpdateShaderBuffer(
+		renderer.debugSsbo,
+		unsafe.Pointer(&zero),
+		uint32(unsafe.Sizeof(zero)),
+		0,
+	)
 	gl.DispatchCompute(uint32((renderer.texture.Width+7)/8), uint32((renderer.texture.Height+7)/8), 1)
 	gl.MemoryBarrier(gl.ALL_BARRIER_BITS)
+
+	var stats DebugStats
+
+	rl.ReadShaderBuffer(
+		renderer.debugSsbo,
+		unsafe.Pointer(&stats),
+		uint32(unsafe.Sizeof(stats)),
+		0,
+	)
+	/*
+	fmt.Printf("Nodes: %d\n", stats.nodesVisited)
+	fmt.Printf("Leaves: %d\n", stats.leafVisited)
+	fmt.Printf("Triangles: %d\n", stats.triangleTests)
+	fmt.Printf("Rays: %d\n", stats.rays)
+
+	fmt.Printf("Avg Nodes/Ray: %.2f\n",
+		float64(stats.nodesVisited)/float64(stats.rays))
+
+	fmt.Printf("Avg Leaves/Ray: %.2f\n",
+		float64(stats.leafVisited)/float64(stats.rays))
+
+	fmt.Printf("Avg Triangles/Ray: %.2f\n",
+		float64(stats.triangleTests)/float64(stats.rays))
+	*/
 }
 
 func (renderer *Renderer) Draw() {

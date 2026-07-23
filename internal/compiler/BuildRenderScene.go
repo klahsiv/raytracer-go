@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"fmt"
 	"ray-tracing/internal/bvh"
 	"ray-tracing/internal/scene/cpu"
 )
@@ -11,7 +12,23 @@ func BuildRenderScene(cpuScene *cpu.Scene) RenderScene {
 
 	builder := bvh.Builder{}
 	tree := builder.Build(primitives)
+	maxLeaf := 0
+	sumLeaf := 0
+	leafCount := 0
 
+	for _, node := range tree.Nodes {
+		if node.IsLeaf() {
+			leafCount++
+			sumLeaf += node.PrimitiveCount
+			if node.PrimitiveCount > maxLeaf {
+				maxLeaf = node.PrimitiveCount
+			}
+		}
+	}
+
+	fmt.Println("Leaf count:", leafCount)
+	fmt.Println("Average leaf size:", float64(sumLeaf)/float64(leafCount))
+	fmt.Println("Maximum leaf size:", maxLeaf)
 	VerifyNode(tree, primitives, 0)
 
 	gpuScene := BuildGpuScene(cpuScene, primitives, tree)
